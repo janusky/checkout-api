@@ -1,0 +1,115 @@
+server:
+  port: ${PORT:8443}
+  #address: local.localhost
+  servlet:
+    contextPath: /
+  ssl:
+    enabled: true
+    #key-alias: local.localhost
+    key-store-type: PKCS12
+    key-store: classpath:config/ssl/key-store.pfx
+    key-store-password: storepass
+    trust-store-type: PKCS12
+    trust-store: classpath:config/ssl/trust-store.pfx
+    trust-store-password: storepass
+    client-auth: want
+
+app:
+  route:
+    api: ${API:/api/v1}
+  proxy:
+    enabled: false
+    host: my.proxy
+    port: 80
+  certificates-enable:
+          
+security:
+  headers:
+    hsts: NONE
+
+spring:
+  #main:
+  #  web-application-type: reactive
+  messages:
+    basename: i18n/messages
+    encoding: UTF-8
+  application:
+    name: checkout-payment-api
+  # En desarrollo para pruebas
+  webflux:
+    static-path-pattern: classpath:/static/**
+  # Database
+  sql:
+    init:
+      mode: embedded
+      platform: ${DATASOURCE_PLATFORM:POSTGRESQL}
+  datasource:
+    #environment -> SPRING_DATASOURCE_URL
+    url: ${DATASOURCE_URL:jdbc:postgresql://localhost:5432/payment}
+    username: ${DATASOURCE_USERNAME:payment}
+    password: ${DATASOURCE_PASSWORD:payment}
+    driver-class-name: ${DATASOURCE_DRIVER_CLASS:org.postgresql.Driver}
+    # hikari default
+    type: com.zaxxer.hikari.HikariDataSource
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 10
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      connection-timeout: 30000
+      data-source-properties:
+        useUnicode: true
+        characterEncoding: utf-8
+        CharSet: utf-8
+  jpa:
+    # Si debe hacer transaccion en controller/rest
+    open-in-view: false
+    # org.hibernate.dialect.PostgreSQLDialect,org.hibernate.dialect.PostgreSQL92Dialect
+    database-platform: ${JPA_PLATFORM:org.hibernate.dialect.PostgreSQLDialect}
+    generate-ddl: true
+    database:  ${JPA_DATABASE:postgresql}
+    show-sql: true
+    hibernate:
+      #Solo cuando cambia el modelo: create
+      ddl-auto: ${HIBERNATE_DDL:create-drop}
+      hbm2ddl:
+        auto: ${HIBERNATE_DDL:create-drop}
+    properties:
+      hibernate.dialect: ${JPA_PLATFORM:org.hibernate.dialect.PostgreSQLDialect}
+      hibernate.format_sql: true
+      #hibernate.enable_lazy_load_no_trans: true
+
+# Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+        exclude: loggers
+    #beans:
+    #  cache:
+    #    time-to-live: 10s
+  endpoint:
+    prometheus:
+      enabled: true
+  prometheus:
+    metrics:
+      export: 
+        enabled: true
+  server:
+    port: 8091
+    address: 127.0.0.1
+    base-path: /
+  security:
+    enabled: false
+
+# https://www.baeldung.com/spring-boot-info-actuator-custom
+info:
+  app:
+    name: checkout-payment-api
+  environment: desarrollo
+  
+logging:
+  file: logs/checkout-payment-api.log
+  level:
+    root: INFO

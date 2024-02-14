@@ -1,0 +1,42 @@
+version: "3.9"
+
+services:
+  checkout-api:
+    container_name: checkout-api
+    build:
+      context: .
+    image: local/checkout-api:dev
+    environment:
+      - SPRING_PROFILES_ACTIVE=demo
+      - APP_PORT=8081
+      - PORT_ACTUATOR=8092
+    network_mode: "host"
+    depends_on:
+      - checkout-payment-api
+    volumes:
+        - $PWD/config:/app/config
+ 
+  checkout-payment-api:
+    container_name: checkout-payment-api
+    image: local/checkout-payment-api:dev
+    environment:
+      - SPRING_PROFILES_ACTIVE=demo
+      - APP_PORT=8080
+      - PORT_ACTUATOR=8091
+      #- APP_SLEEP=10
+    network_mode: "host"
+    depends_on:
+      - database
+    volumes:
+        - $PWD/checkout-payment-api/config:/app/config
+ 
+  database:
+    container_name: database
+    image: postgres:16.1
+    ports:
+      - "5432:5432"
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - $PWD/checkout-payment-api/data-init.sql:/docker-entrypoint-initdb.d/1-init.sql

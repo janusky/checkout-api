@@ -1,0 +1,132 @@
+# Server config
+server:
+  port: ${APP_PORT:8081}
+  address: ${APP_ADDRESS:localhost}
+  servlet:
+    context-path: /
+  compression:
+    enabled: true
+    mime-types: text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json
+    min-response-size: 1024
+  http2:
+    enabled: true
+
+spring:
+  application:
+    name: checkout-api
+  messages:
+    basename: i18n/messages
+    encoding: UTF-8
+  jpa:
+    # Provide database platform that is being used
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      # New database is created when application starts and destroyed when application is stopped
+      ddl-auto: create-drop
+    defer-datasource-initialization: true
+    # Show sql when spring data jpa performs query
+    show-sql: true
+    properties:
+      hibernate:
+        # Format queries
+        format_sql: true
+  datasource:
+    # URL connection to database (spring-security is database name)
+    url: jdbc:h2:mem:spring-security
+    # H2 sql Driver
+    driver-class-name: org.h2.Driver
+    username: root
+    password: 12345
+  h2:
+    console:
+      enabled: true
+
+# App properties  
+app:
+  jwt:
+    header: Authorization
+    secret: mySecret01234567890098765432112345678900987654321123456789009876
+    expiration: 1200000
+  ssl:
+    checkout-payment-api:
+      keyStore: classpath:config/ssl/checkout-payment-api.pfx
+      keyStorePass: storepass
+  allowedOrigins: http://localhost:8080,http://localhost
+  route:
+    api: /api/v1
+    # Authentication Users -> /auth
+    # POST - > /login, POST - > /register, POST - > /verify, POST - > /forgot, POST - > /reset, GET - > /token
+    auth:
+      signin: /auth/login
+      signup: /auth/register
+      token: /auth/token
+    # Users -> /users
+    # GET - > /profile, PATCH - > /profile, POST - > /profile/changePassword, 
+    users:
+      me: ${app.route.api}/users/me
+    # Public Service 
+    path-public: ${app.route.api}/status,/auth/**,/actuator/**
+    checkout-payment-api:
+      submit: https://localhost:8443/api/v1/orders/items
+      payment: https://localhost:8443/api/v1/orders/{id}/payment/{amount}
+  mail:
+    from: admin@localhost.com
+    # imageRegister: static/sending-email-icon-email.png
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /api-docs/swagger-ui
+    operationsSorter: alpha
+    tagsSorter: alpha
+  description: 'API de sistema checkout &amp; pago para empresas y clientes de estás empresas.'
+  version: 'v1' 
+  path-dependencies: /api-docs/**,/openapi*/**,/swagger*/**,/v3/api-docs/**,/webjars/**
+  packagesToScan: checkoutapi.api
+
+# Actuator
+#https://docs.spring.io/spring-boot/docs/current/reference/html/actuator.html#actuator.endpoints.kubernetes-probes
+#Checking External State with Kubernetes Probes
+#management.endpoint.health.group.readiness.include=readinessState,customCheck
+#Application Lifecycle and Probe States
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+        exclude: loggers
+    #beans:
+    #  cache:
+    #    time-to-live: 10s
+  endpoint:
+    prometheus:
+      enabled: true
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+  server:
+    port: ${PORT_ACTUATOR:8092}
+    address: 127.0.0.1
+    base-path: /
+  security:
+    enabled: false
+
+# https://www.baeldung.com/spring-boot-info-actuator-custom
+info:
+  app:
+    name: checkout-api
+    version: beta
+    environment: dev
+  
+# logging: log4j2:
+#logging:
+#  file: logs/seed-backend.log
+#  level:
+#    root: INFO
+#    org.hibernate: INFO
+#    org.hibernate.SQL: DEBUG
+#    org.hibernate.type: DEBUG
+#    org.springframework:
+#      security: INFO

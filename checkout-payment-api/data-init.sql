@@ -1,0 +1,5 @@
+CREATE USER payment WITH PASSWORD 'payment';
+CREATE DATABASE payment;
+GRANT ALL PRIVILEGES ON DATABASE payment TO payment;
+\c payment;
+CREATE SCHEMA pay AUTHORIZATION payment;
